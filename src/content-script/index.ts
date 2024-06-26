@@ -2,16 +2,16 @@ import './index.scss'
 import { supabase } from '@/supabase-clients/createSupabaseStaticClient'
 import type { Question } from '@/lib/Question'
 
-const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
+// const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
 
-const iframe = new DOMParser().parseFromString(
-  `<iframe class="crx-iframe" src="${src}"></iframe>`,
-  'text/html'
-).body.firstElementChild
+// const iframe = new DOMParser().parseFromString(
+//   `<iframe class="crx-iframe" src="${src}"></iframe>`,
+//   'text/html'
+// ).body.firstElementChild
 
-if (iframe) {
-  document.body?.append(iframe)
-}
+// if (iframe) {
+//   document.body?.append(iframe)
+// }
 
 self.onerror = function (message, source, lineno, colno, error) {
   console.info(
@@ -81,8 +81,10 @@ async function extractAndSaveQuestions(): Promise<void> {
   // 使用 Supabase 插入数据
   const { data, error } = await supabase
     .from('question_bank')
-    .insert(questionsData)
-
+    .upsert(questionsData, {
+      onConflict: ['question_id'],
+      ignoreDuplicates: true, // 如果有冲突则忽略重复记录，不进行更新
+    })
   if (error) {
     console.error('Error inserting questions:', error)
   } else {
@@ -90,6 +92,63 @@ async function extractAndSaveQuestions(): Promise<void> {
   }
 }
 
+// 从页面上提取题目信息并查询答案
+async function extractQuestionsAndFetchAnswers() {
+  const questionsData = []
+  const questionContainers = document.querySelectorAll('div.questionLi')
+
+  questionContainers.forEach((questionContainer) => {
+    const questionText =
+      questionContainer.querySelector('h3.mark_name div')?.innerText.trim() ||
+      ''
+    const options = []
+    const optionElements = questionContainer.querySelectorAll(
+      '.stem_answer .answerBg'
+    )
+
+    optionElements.forEach((optionElement) => {
+      const optionText =
+        optionElement.querySelector('.answer_p')?.innerText.trim() || ''
+      const optionValue =
+        optionElement.querySelector('span')?.getAttribute('data') || ''
+      options.push({ text: optionText, value: optionValue })
+    })
+
+    questionsData.push({ questionText, options })
+  })
+
+  for (const question of questionsData) {
+    // 排除前十个字的部分文本
+    const partialQuestionText = question.questionText.substring(10)
+    const { data, error } = await supabase
+      .from('question_bank')
+      .select('correct_answer')
+      .ilike('question', `%${partialQuestionText}%`)
+      .single()
+
+    if (error) {
+      console.error(
+        `Error fetching answer for question: ${question.questionText}`,
+        error
+      )
+    } else {
+      console.log(`Question: ${question.questionText}`)
+      console.log(`Correct Answer: ${data.correct_answer}`)
+
+      // 匹配并标识正确答案
+      const correctOption = question.options.find(
+        (option) => option.text === data.correct_answer
+      )
+      if (correctOption) {
+        console.log(`Correct Option: ${correctOption.value}`)
+      } else {
+        console.error(
+          `Correct answer not found in options for question: ${question.questionText}`
+        )
+      }
+    }
+  }
+}
 // 监听来自其他脚本的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'extractAndSaveQuestions') {
@@ -101,5 +160,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ status: 'error', error: error.message })
       })
     return true // 使响应异步
+  } else if (message.action === 'extractQuestionsAndFetchAnswers') {
+    extractQuestionsAndFetchAnswers().then(() => {
+      sendResponse({ status: 'success' })
+    }).catch((error) => {
+        sendResponse({ status: 'error', error: error.message })
+      })
+    return true
   }
 })

@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS public.question_bank (
   CONSTRAINT fk_user
     FOREIGN KEY(user_id)
       REFERENCES auth.users(id)
-      ON DELETE CASCADE
+      ON DELETE CASCADE,
+  CONSTRAINT unique_question_id UNIQUE (question_id)
 );
 
 -- 启用行级安全性（RLS）
