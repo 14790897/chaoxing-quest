@@ -29,13 +29,13 @@ export default defineManifest(async (env) => ({
     {
       all_frames: false,
       js: ['src/content-script/index.ts'],
-      matches: ['*://*/*'],
+      matches: ['*://*.xuexi365.com/*'],
       run_at: 'document_end',
     },
   ],
   offline_enabled: false,
   host_permissions: [],
-  permissions: ['storage', 'tabs', 'background'],
+  permissions: ['storage', 'tabs', 'background', 'activeTab'],
   web_accessible_resources: [
     {
       matches: ['*://*/*'],

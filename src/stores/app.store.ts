@@ -4,6 +4,7 @@ import { useStorage } from '@vueuse/core'
 export const useAppStore = defineStore('app', () => {
   const count = useStorage('count', 0)
   const name = useStorage('name', 'John Doe')
+  const userId = useStorage('userId', '')
 
   // You should probably use chrome.storage API instead of localStorage since localStorage history can be cleared by the user.
   // See https://developer.chrome.com/docs/extensions/reference/api/storage
@@ -16,10 +17,16 @@ export const useAppStore = defineStore('app', () => {
     count.value--
   }
 
+  const setUserId = (id: string) => {
+    userId.value = id
+  }
+  // const setUserId =
   return {
     count,
     name,
+    userId,
     increment,
     decrement,
+    setUserId,
   }
 })

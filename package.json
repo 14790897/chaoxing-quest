@@ -20,9 +20,14 @@
     "lint": "eslint . --fix",
     "lint:manifest": "web-ext lint --pretty",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "supabase:link": "env-cmd -f ./.env.local supabase link --project-ref tcrlagnatokjmiuxybkt",
+    "migration:up": "supabase migration up --linked --debug && pnpm generate-types",
+    "generate-types": "pnpm supabase gen types typescript --project-id tcrlagnatokjmiuxybkt --schema public > src/lib/database.types.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.44.0",
+    "env-cmd": "^10.1.0",
     "marked": "^12.0.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.27",

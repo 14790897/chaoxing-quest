@@ -1,10 +1,16 @@
 {
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": true,
   "json.schemas": [
     {
       "fileMatch": ["manifest.json"],
       "url": "https://json.schemastore.org/chrome-manifest.json"
     }
   ],
-  "typescript.preferences.autoImportFileExcludePatterns": ["vue-router"],
-  "markdown.validate.ignoredLinks": ["./src/setup/pages/index.ts"]
+  "markdown.validate.ignoredLinks": ["./src/setup/pages/index.ts"],
+  "typescript.preferences.autoImportFileExcludePatterns": ["vue-router"]
 }
