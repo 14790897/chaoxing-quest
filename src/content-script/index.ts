@@ -119,21 +119,26 @@ async function extractQuestionsAndFetchAnswers() {
 
   for (const question of questionsData) {
     // 排除前十个字的部分文本
-    const partialQuestionText = question.questionText.substring(10)
+    const partialQuestionText = question.questionText.substring(2)
     const { data, error } = await supabase
       .from('question_bank')
-      .select('correct_answer')
+      .select('*')
       .ilike('question', `%${partialQuestionText}%`)
-      .single()
 
     if (error) {
       console.error(
         `Error fetching answer for question: ${question.questionText}`,
         error
       )
+    } else if (data.length === 0) {
+      console.error(`No answer found for question: ${question.questionText}`)
     } else {
       console.log(`Question: ${question.questionText}`)
-      console.log(`Correct Answer: ${data.correct_answer}`)
+      console.log(`All matching records:`, data)
+
+      // 只使用第一条记录进行判断
+      const correctAnswer = data[0].correct_answer
+      console.log(`Using the first record's correct answer: ${correctAnswer}`)
 
       // 匹配并标识正确答案
       const correctOption = question.options.find(
@@ -161,9 +166,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
     return true // 使响应异步
   } else if (message.action === 'extractQuestionsAndFetchAnswers') {
-    extractQuestionsAndFetchAnswers().then(() => {
-      sendResponse({ status: 'success' })
-    }).catch((error) => {
+    extractQuestionsAndFetchAnswers()
+      .then(() => {
+        sendResponse({ status: 'success' })
+      })
+      .catch((error) => {
         sendResponse({ status: 'error', error: error.message })
       })
     return true
