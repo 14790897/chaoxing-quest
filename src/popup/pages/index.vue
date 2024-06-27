@@ -14,6 +14,7 @@ const password = ref('')
 
 // 存储从内容脚本返回的数据
 const questionsData = ref([])
+const extractAndSaveQuestionsStatus = ref('')
 
 // 登录处理函数
 async function handleLogin() {
@@ -41,8 +42,10 @@ function handleExtractAndSaveQuestions() {
         (response) => {
           if (response?.status === 'success') {
             console.log('Questions extracted and saved.')
+            extractAndSaveQuestionsStatus.value = 'Questions extracted and saved.'
           } else {
             console.error('Error:', response?.error)
+            extractAndSaveQuestionsStatus.value = `Error:  + ${response?.error}`
           }
         }
       )
@@ -123,6 +126,10 @@ onMounted(() => {
     >
       Extract and Save Questions
     </button>
+    <div v-if="extractAndSaveQuestionsStatus">
+      <p>{{ extractAndSaveQuestionsStatus }}</p>
+    </div>
+
     <!-- 登录表单 -->
     <div>
       <input

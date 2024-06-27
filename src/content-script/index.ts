@@ -139,12 +139,15 @@ async function extractQuestionsAndFetchAnswers() {
         `Error fetching answer for question: ${question.questionText}`,
         error
       )
-      results.push({ question: question.questionText, error: error.message })
+      results.push({
+        question: question.questionText,
+        correctAnswers: error.message,
+      })
     } else if (data.length === 0) {
       console.error(`No answer found for question: ${question.questionText}`)
       results.push({
         question: question.questionText,
-        error: 'No answer found',
+        correctAnswers: 'No answer found',
       })
     } else {
       console.log(`Question: ${question.questionText}`)
@@ -166,10 +169,8 @@ async function extractQuestionsAndFetchAnswers() {
         )
 
         // 匹配并标识正确答案
-        const correctOptions = question.options.filter(
-          (option) =>
-            correctOptionTexts.includes(option.text) ||
-            option.text.includes(correctOptionTexts)
+        const correctOptions = question.options.filter((option) =>
+          correctOptionTexts.includes(option.text)
         )
         console.log('question.options', question.options)
         console.log('correctOptionTexts', correctOptionTexts)
