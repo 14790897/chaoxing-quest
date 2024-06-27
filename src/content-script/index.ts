@@ -158,11 +158,22 @@ async function extractQuestionsAndFetchAnswers() {
         const correctAnswers = Array.isArray(data[0].correct_answers)
           ? data[0].correct_answers
           : data[0].correct_answers.split('')
-        const correctOptionTexts = correctAnswers.map((answer: string) => {
-          return data[0].options.find(
-            (option: { text: string; value: string }) => option.value === answer
-          )?.text
-        })
+
+        const correctOptionTexts = correctAnswers
+          .map((answer: string) => {
+            const option = data[0].options.find(
+              (option) => option.value === answer
+            )
+            if (option) {
+              return option.text
+            } else {
+              console.error(
+                `Option for answer ${answer} not found in database options`
+              )
+              return ''
+            }
+          })
+          .filter((text) => text !== '')
 
         console.log(
           `Using the first record's correct answers: ${correctAnswers.join(', ')} - ${correctOptionTexts.join(', ')}`
@@ -172,9 +183,11 @@ async function extractQuestionsAndFetchAnswers() {
         const correctOptions = question.options.filter((option) =>
           correctOptionTexts.includes(option.text)
         )
+
         console.log('question.options', question.options)
         console.log('correctOptionTexts', correctOptionTexts)
         console.log('correctOptions:', correctOptions)
+
         if (correctOptions.length === correctOptionTexts.length) {
           console.log(
             `Correct Options: ${correctOptions.map((o) => o.value).join(', ')}`
@@ -194,8 +207,7 @@ async function extractQuestionsAndFetchAnswers() {
         )
         results.push({
           question: question.questionText,
-          // correctAnswers: correctAnswers.join(', '),
-          correctOptions: `Error matching options, showing raw answers:  ${data[0].correct_answers}`,
+          correctOptions: `Error matching options, showing raw answers: ${data[0].correct_answers}`,
         })
       }
     }
@@ -203,6 +215,7 @@ async function extractQuestionsAndFetchAnswers() {
 
   return results
 }
+
 // 监听来自其他脚本的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'extractAndSaveQuestions') {

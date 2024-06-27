@@ -112,10 +112,10 @@ onMounted(() => {
             <strong>Correct Option:</strong>
             {{ item.correctOptions }}
           </p>
-          <p>
+          <!-- <p>
             <strong>Error:</strong>
             {{ item.error }}
-          </p>
+          </p> -->
         </li>
       </ul>
     </div>
