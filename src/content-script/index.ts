@@ -42,7 +42,7 @@ async function extractAndSaveQuestions(): Promise<void> {
     const optionElements =
       questionContainer.querySelectorAll<HTMLLIElement>('ul.mark_letter li')
     optionElements.forEach((optionElement, index) => {
-      const optionText = optionElement.textContent!.trim().substring(2) //去掉前面的序号
+      const optionText = optionElement.textContent!.trim().substring(2).trim() //去掉前面的序号
       const optionValue = String.fromCharCode(65 + index) // 将选项索引转换为 A, B, C, D
       options.push({ text: optionText, value: optionValue })
     })
@@ -150,42 +150,51 @@ async function extractQuestionsAndFetchAnswers() {
       console.log(`Question: ${question.questionText}`)
       console.log(`All matching records:`, data)
 
-      // 只使用第一条记录进行判断
-      const correctAnswers = Array.isArray(data[0].correct_answers)
-        ? data[0].correct_answers
-        : data[0].correct_answers.split('')
-      const correctOptionTexts = correctAnswers.map((answer: string) => {
-        return data[0].options.find(
-          (option: { text: string; value: string }) => option.value === answer
-        )?.text
-      })
-
-      console.log(
-        `Using the first record's correct answers: ${correctAnswers.join(', ')} - ${correctOptionTexts.join(', ')}`
-      )
-
-      // 匹配并标识正确答案
-      const correctOptions = question.options.filter((option) =>
-        correctOptionTexts.includes(option.text)
-      )
-
-      if (correctOptions.length === correctOptionTexts.length) {
-        console.log(
-          `Correct Options: ${correctOptions.map((o) => o.value).join(', ')}`
-        )
-        results.push({
-          question: question.questionText,
-          correctAnswers: correctOptionTexts,
-          correctOptions: correctOptions.map((o) => o.value),
+      try {
+        // 只使用第一条记录进行判断
+        const correctAnswers = Array.isArray(data[0].correct_answers)
+          ? data[0].correct_answers
+          : data[0].correct_answers.split('')
+        const correctOptionTexts = correctAnswers.map((answer: string) => {
+          return data[0].options.find(
+            (option: { text: string; value: string }) => option.value === answer
+          )?.text
         })
-      } else {
+
+        console.log(
+          `Using the first record's correct answers: ${correctAnswers.join(', ')} - ${correctOptionTexts.join(', ')}`
+        )
+
+        // 匹配并标识正确答案
+        const correctOptions = question.options.filter(
+          (option) =>
+            correctOptionTexts.includes(option.text) ||
+            option.text.includes(correctOptionTexts)
+        )
+        console.log('question.options', question.options)
+        console.log('correctOptionTexts', correctOptionTexts)
+        console.log('correctOptions:', correctOptions)
+        if (correctOptions.length === correctOptionTexts.length) {
+          console.log(
+            `Correct Options: ${correctOptions.map((o) => o.value).join(', ')}`
+          )
+          results.push({
+            question: question.questionText,
+            correctAnswers: correctOptionTexts,
+            correctOptions: correctOptions.map((o) => o.value),
+          })
+        } else {
+          throw new Error('Correct answers not found in options')
+        }
+      } catch (matchError) {
         console.error(
-          `Correct answers not found in options for question: ${question.questionText}`
+          `Error matching answers for question: ${question.questionText}`,
+          matchError
         )
         results.push({
           question: question.questionText,
-          correctAnswers: correctOptionTexts,
-          correctOptions: 'Not found in options',
+          correctAnswers: correctAnswers.join(', '),
+          correctOptions: 'Error matching options, showing raw answers',
         })
       }
     }
@@ -193,7 +202,6 @@ async function extractQuestionsAndFetchAnswers() {
 
   return results
 }
-
 // 监听来自其他脚本的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'extractAndSaveQuestions') {
