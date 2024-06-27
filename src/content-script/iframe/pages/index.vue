@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// import { useAppStore } from '@/stores/app.store'
-import { supabase } from '@/supabase-clients/createSupabaseStaticClient';
+import { ref } from 'vue'
+import { supabase } from '@/supabase-clients/createSupabaseStaticClient'
 
 const version = __VERSION__
 const displayName = __DISPLAY_NAME__
@@ -8,28 +8,26 @@ const gitURL = __GITHUB_URL__
 const gitCommit = __GIT_COMMIT__
 const gitCommitURL = `${gitURL}/commit/${gitCommit}`
 
-// const store = useAppStore()
-
-// const name = computed(() => store.name)
-// const count = computed(() => store.count)
-
-
 // 存储用户登录状态
-const email = ref('');
-const password = ref('');
+const email = ref('')
+const password = ref('')
+
+// 存储从内容脚本返回的数据
+const questionsData = ref([])
+
 // 登录处理函数
 async function handleLogin() {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email.value,
     password: password.value,
-  });
+  })
 
   if (error) {
-    console.error('Login error:', error.message);
+    console.error('Login error:', error.message)
   } else {
-    console.log('Login successful:', data.user);
+    console.log('Login successful:', data.user)
     // 存储用户信息
-    // store.setUserId(data.user.id);
+    chrome.storage.sync.set({ userId: data.user.id })
   }
 }
 
@@ -37,83 +35,135 @@ async function handleLogin() {
 function handleExtractAndSaveQuestions() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.id) {
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'extractAndSaveQuestions' }, (response) => {
-        if (response?.status === 'success') {
-          console.log('Questions extracted and saved.');
-        } else {
-          console.error('Error:', response?.error);
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { action: 'extractAndSaveQuestions' },
+        (response) => {
+          if (response?.status === 'success') {
+            console.log('Questions extracted and saved.')
+          } else {
+            console.error('Error:', response?.error)
+          }
         }
-      });
+      )
     }
-  });
+  })
 }
 
-function handleExtractQuestionsAndFetchAnswers(){
+function handleExtractQuestionsAndFetchAnswers() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.id) {
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'extractQuestionsAndFetchAnswers' }, (response) => {
-        if (response?.status === 'success') {
-          console.log('Questions extracted and saved.');
-        } else {
-          console.error('Error:', response?.error);
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { action: 'extractQuestionsAndFetchAnswers' },
+        (response) => {
+          if (response?.status === 'success') {
+            console.log('Questions extracted and fetched.', response.data)
+            questionsData.value = response.data // 存储返回的数据
+          } else {
+            console.error('Error:', response?.error)
+          }
         }
-      });
+      )
     }
-  });
+  })
 }
+// 页面加载时检查 URL 并自动搜索答案
+onMounted(() => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.url.includes('exam')) {
+      handleExtractQuestionsAndFetchAnswers()
+      console.log('Exam page detected.')
+    }
+  })
+})
 </script>
 
 <template>
   <div class="text-center m-4 flex flex-col gap-y-2">
-    <h1 class="text-3xl font-bold underline pb-6">
-      Hello world from Popup!
-    </h1>
-
-    <p>Vesion: {{ version }}</p>
-    <p>Display name: {{ displayName }}</p>
-    <!-- 按钮触发内容脚本函数 -->
-    <button @click="handleExtractAndSaveQuestions" class="bg-blue-500 text-white py-2 px-4 rounded">
-      Extract and Save Questions
-    </button>
-    <button @click="handleExtractQuestionsAndFetchAnswers" class="bg-blue-500 text-white py-2 px-4 rounded">
+    <button
+      @click="handleExtractQuestionsAndFetchAnswers"
+      class="bg-blue-500 text-white py-2 px-4 rounded"
+    >
       Extract Questions and Fetch Answers
     </button>
-
+    <!-- 显示返回的答案 -->
+    <div v-if="questionsData.length">
+      <h2 class="text-xl font-bold pt-6">Fetched Answers</h2>
+      <ul>
+        <li
+          v-for="(item, index) in questionsData"
+          :key="index"
+        >
+          <p>
+            <strong>Question:</strong>
+            {{ item.question }}
+          </p>
+          <p>
+            <strong>Correct Answer:</strong>
+            {{ item.correctAnswer }}
+          </p>
+          <p>
+            <strong>Correct Option:</strong>
+            {{ item.correctOption }}
+          </p>
+        </li>
+      </ul>
+    </div>
+    <!-- 按钮触发内容脚本函数 -->
+    <button
+      @click="handleExtractAndSaveQuestions"
+      class="bg-blue-500 text-white py-2 px-4 rounded"
+    >
+      Extract and Save Questions
+    </button>
     <!-- 登录表单 -->
     <div>
-      <input v-model="email" type="email" placeholder="Email" class="mb-2 p-2 border rounded" >
-      <input v-model="password" type="password" placeholder="Password" class="mb-2 p-2 border rounded" >
-      <button @click="handleLogin" class="bg-green-500 text-white py-2 px-4 rounded">
+      <input
+        v-model="email"
+        type="email"
+        placeholder="Email"
+        class="mb-2 p-2 border rounded"
+      />
+      <input
+        v-model="password"
+        type="password"
+        placeholder="Password"
+        class="mb-2 p-2 border rounded"
+      />
+      <button
+        @click="handleLogin"
+        class="bg-green-500 text-white py-2 px-4 rounded"
+      >
         Login
       </button>
     </div>
+
     <p>
       GIT URL:
-      <a class="undeline text-green-500" :href="gitURL">
+      <a
+        class="underline text-green-500"
+        :href="gitURL"
+      >
         {{ gitURL }}
       </a>
     </p>
 
     <p>
       GIT Commit:
-      <a :href="gitCommitURL" class="text-green-500">
+      <a
+        :href="gitCommitURL"
+        class="text-green-500"
+      >
         (#{{ gitCommit }})
       </a>
     </p>
-
-    <!-- <p>Name: {{ name }}</p>
-    <p>Count: {{ count }}</p>
-
-    <div class="flex gap-x-2 justify-center">
-      <button class="btn btn-primary" @click="store.increment">
-        Increment
-      </button>
-      <button class="btn btn-primary" @click="store.decrement">
-        Decrement
-      </button>
-    </div> -->
-
-    <RouterLink class="underline" to="/common/about">
+    <p>Version: {{ version }}</p>
+    <p>Display name: {{ displayName }}</p>
+    <RouterLink
+      class="underline"
+      to="/common/about"
+    >
       About
     </RouterLink>
   </div>
