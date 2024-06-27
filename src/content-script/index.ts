@@ -194,7 +194,7 @@ async function extractQuestionsAndFetchAnswers() {
         results.push({
           question: question.questionText,
           // correctAnswers: correctAnswers.join(', '),
-          correctOptions: 'Error matching options, showing raw answers',
+          correctOptions: `Error matching options, showing raw answers:  ${data[0].correct_answers}`,
         })
       }
     }

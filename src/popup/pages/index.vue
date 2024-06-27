@@ -71,7 +71,10 @@ function handleExtractQuestionsAndFetchAnswers() {
 // 页面加载时检查 URL 并自动搜索答案
 onMounted(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]?.url.includes('exam')&& ! tabs[0]?.url.includes('exam-ans')) {
+    if (
+      tabs[0]?.url.includes('exam') &&
+      !tabs[0]?.url.includes('reVersionPaperMark')
+    ) {
       handleExtractQuestionsAndFetchAnswers()
     }
   })
@@ -100,11 +103,15 @@ onMounted(() => {
           </p>
           <p>
             <strong>Correct Answer:</strong>
-            {{ item.correctAnswer }}
+            {{ item.correctAnswers }}
           </p>
           <p>
             <strong>Correct Option:</strong>
-            {{ item.correctOption }}
+            {{ item.correctOptions }}
+          </p>
+          <p>
+            <strong>Error:</strong>
+            {{ item.error }}
           </p>
         </li>
       </ul>

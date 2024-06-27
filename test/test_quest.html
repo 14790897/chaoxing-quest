@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Page for Script</title>
+  <style>
+    .questionLi {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .mark_name {
+      font-weight: bold;
+    }
+    .mark_letter, .stem_answer {
+      list-style-type: none;
+      padding: 0;
+    }
+    .mark_letter li, .stem_answer .answerBg {
+      padding: 5px 0;
+    }
+    .stem_answer .answerBg {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test Page for Script</h1>
+  
+  <div class="questionLi" data="q1">
+    <h3 class="mark_name">
+      1. 这是一个单选题吗？
+      <div>选择题 (单选题)</div>
+    </h3>
+    <div class="stem_answer">
+      <div class="clearfix answerBg" onclick="addMultipleChoice(this);" tabindex="0" role="checkbox">
+        <span data="A" qid="q1" class="addMultipleChoice choiceq1 num_option_dx fl">A</span>
+        <div class="fl answer_p">是的</div>
+      </div>
+      <div class="clearfix answerBg" onclick="addMultipleChoice(this);" tabindex="0" role="checkbox">
+        <span data="B" qid="q1" class="addMultipleChoice choiceq1 num_option_dx fl">B</span>
+        <div class="fl answer_p">不是</div>
+      </div>
+      <div class="clearfix answerBg" onclick="addMultipleChoice(this);" tabindex="0" role="checkbox">
+        <span data="C" qid="q1" class="addMultipleChoice choiceq1 num_option_dx fl">C</span>
+        <div class="fl answer_p">不确定</div>
+      </div>
+    </div>
+</body>
+</html>

@@ -29,7 +29,7 @@ export default defineManifest(async (env) => ({
     {
       all_frames: false,
       js: ['src/content-script/index.ts'],
-      matches: ['*://*.xuexi365.com/*'],
+      matches: ['*://*.xuexi365.com/*', '*://127.0.0.1/*'],
       run_at: 'document_end',
     },
   ],
