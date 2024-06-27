@@ -173,6 +173,7 @@ async function extractQuestionsAndFetchAnswers() {
 
   return results
 }
+
 // 监听来自其他脚本的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'extractAndSaveQuestions') {
@@ -195,3 +196,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true
   }
 })
+
+// // 使用 MutationObserver 监听题目文本变化
+// const questionContainers = document.querySelectorAll('div.questionLi')
+// questionContainers.forEach((questionContainer) => {
+//   const observer = new MutationObserver(() => {
+//     extractQuestionsAndFetchAnswers()
+//       .then((results) => {
+//         // 发送消息给背景脚本
+//         chrome.runtime.sendMessage(
+//           { action: 'newAnswers', data: results },
+//           (response) => {
+//             if (response.status === 'success') {
+//               console.log('Answers sent to background script successfully.')
+//             } else {
+//               console.error(
+//                 'Error sending answers to background script:',
+//                 response.error
+//               )
+//             }
+//           }
+//         )
+//       })
+//       .catch((error) => {
+//         console.error('Error fetching answers:', error)
+//       })
+//   })
+
+//   observer.observe(questionContainer, {
+//     childList: true,
+//     subtree: true,
+//     characterData: true,
+//   })
+// })
