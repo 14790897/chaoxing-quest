@@ -38,16 +38,18 @@ async function extractAndSaveQuestions(): Promise<void> {
         ?.textContent!.trim() || ''
 
     // 提取选项
-    const options: string[] = []
+    const options: { text: string; value: string }[] = []
     const optionElements =
       questionContainer.querySelectorAll<HTMLLIElement>('ul.mark_letter li')
-    optionElements.forEach((optionElement) => {
-      options.push(optionElement.textContent!.trim())
+    optionElements.forEach((optionElement, index) => {
+      const optionText = optionElement.textContent!.trim().substring(2) //去掉前面的序号
+      const optionValue = String.fromCharCode(65 + index) // 将选项索引转换为 A, B, C, D
+      options.push({ text: optionText, value: optionValue })
     })
 
     // 提取用户答案和正确答案
     let userAnswer = ''
-    let correctAnswer = ''
+    let correctAnswers: string[] = []
     const answerElements =
       questionContainer.querySelectorAll<HTMLSpanElement>('div.mark_key span')
 
@@ -58,9 +60,11 @@ async function extractAndSaveQuestions(): Promise<void> {
       if (answerLabel === '我的答案:') {
         userAnswer = answerElement.textContent!.replace('我的答案:', '').trim()
       } else if (answerLabel === '正确答案:') {
-        correctAnswer = answerElement
+        correctAnswers = answerElement
           .textContent!.replace('正确答案:', '')
           .trim()
+          .split(',')
+          .map((s) => s.trim())
       }
     })
 
@@ -70,7 +74,7 @@ async function extractAndSaveQuestions(): Promise<void> {
       question_id: questionId,
       question: questionText,
       options,
-      correct_answer: correctAnswer,
+      correct_answers: correctAnswers,
       // user_answer: userAnswer || undefined, // 如果没有用户答案，将其设置为 undefined
     })
   })
@@ -144,28 +148,40 @@ async function extractQuestionsAndFetchAnswers() {
       console.log(`All matching records:`, data)
 
       // 只使用第一条记录进行判断
-      const correctAnswer = data[0].correct_answer
-      console.log(`Using the first record's correct answer: ${correctAnswer}`)
+      const correctAnswers = data[0].correct_answers
+      console.log('Correct Answers:', correctAnswers)
+      const correctOptionTexts = correctAnswers.map((answer: string) => {
+        return data[0].options.find(
+          (option: { text: string; value: string }) => option.value === answer
+        )?.text
+      })
+
+      console.log(
+        `Using the first record's correct answers: ${correctAnswers.join(', ')} - ${correctOptionTexts.join(', ')}`
+      )
 
       // 匹配并标识正确答案
-      const correctOption = question.options.find(
-        (option) => option.text === correctAnswer
+      const correctOptions = question.options.filter((option) =>
+        correctOptionTexts.includes(option.text)
       )
-      if (correctOption) {
-        console.log(`Correct Option: ${correctOption.value}`)
-        results.push({
-          question: question.questionText,
-          correctAnswer,
-          correctOption: correctOption.value,
-        })
-      } else {
-        console.error(
-          `Correct answer not found in options for question: ${question.questionText}`
+
+      if (correctOptions.length === correctOptionTexts.length) {
+        console.log(
+          `Correct Options: ${correctOptions.map((o) => o.value).join(', ')}`
         )
         results.push({
           question: question.questionText,
-          correctAnswer,
-          correctOption: 'Not found in options',
+          correctAnswers: correctOptionTexts,
+          correctOptions: correctOptions.map((o) => o.value),
+        })
+      } else {
+        console.error(
+          `Correct answers not found in options for question: ${question.questionText}`
+        )
+        results.push({
+          question: question.questionText,
+          correctAnswers: correctOptionTexts,
+          correctOptions: 'Not found in options',
         })
       }
     }
