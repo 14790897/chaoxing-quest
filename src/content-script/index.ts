@@ -60,11 +60,14 @@ async function extractAndSaveQuestions(): Promise<void> {
       if (answerLabel === '我的答案:') {
         userAnswer = answerElement.textContent!.replace('我的答案:', '').trim()
       } else if (answerLabel === '正确答案:') {
-        correctAnswers = answerElement
+        const correctAnswerText = answerElement
           .textContent!.replace('正确答案:', '')
           .trim()
-          .split(',')
-          .map((s) => s.trim())
+        // 确保正确答案存储为数组格式
+        correctAnswers =
+          correctAnswerText.length > 1
+            ? correctAnswerText.split('')
+            : [correctAnswerText]
       }
     })
 
@@ -148,8 +151,9 @@ async function extractQuestionsAndFetchAnswers() {
       console.log(`All matching records:`, data)
 
       // 只使用第一条记录进行判断
-      const correctAnswers = data[0].correct_answers
-      console.log('Correct Answers:', correctAnswers)
+      const correctAnswers = Array.isArray(data[0].correct_answers)
+        ? data[0].correct_answers
+        : data[0].correct_answers.split('')
       const correctOptionTexts = correctAnswers.map((answer: string) => {
         return data[0].options.find(
           (option: { text: string; value: string }) => option.value === answer
