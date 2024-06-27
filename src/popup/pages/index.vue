@@ -71,7 +71,7 @@ function handleExtractQuestionsAndFetchAnswers() {
 // 页面加载时检查 URL 并自动搜索答案
 onMounted(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]?.url.includes('exam')) {
+    if (tabs[0]?.url.includes('exam')&& ! tabs[0]?.url.includes('exam-ans')) {
       handleExtractQuestionsAndFetchAnswers()
     }
   })

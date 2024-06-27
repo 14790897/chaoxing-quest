@@ -193,7 +193,7 @@ async function extractQuestionsAndFetchAnswers() {
         )
         results.push({
           question: question.questionText,
-          correctAnswers: correctAnswers.join(', '),
+          // correctAnswers: correctAnswers.join(', '),
           correctOptions: 'Error matching options, showing raw answers',
         })
       }
