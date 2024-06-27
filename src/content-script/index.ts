@@ -2,16 +2,16 @@ import './index.scss'
 import { supabase } from '@/supabase-clients/createSupabaseStaticClient'
 import type { Question } from '@/lib/Question'
 
-// const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
+const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
 
-// const iframe = new DOMParser().parseFromString(
-//   `<iframe class="crx-iframe" src="${src}"></iframe>`,
-//   'text/html'
-// ).body.firstElementChild
+const iframe = new DOMParser().parseFromString(
+  `<iframe class="crx-iframe"  style="position:fixed; top:10%; right:10%; width:300px; height:400px; z-index:9999; border:none; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:10px;" src="${src}"></iframe>`,
+  'text/html'
+).body.firstElementChild
 
-// if (iframe) {
-//   document.body?.append(iframe)
-// }
+if (iframe) {
+  document.body?.append(iframe)
+}
 
 self.onerror = function (message, source, lineno, colno, error) {
   console.info(
@@ -117,6 +117,8 @@ async function extractQuestionsAndFetchAnswers() {
     questionsData.push({ questionText, options })
   })
 
+  const results = []
+
   for (const question of questionsData) {
     // 排除前十个字的部分文本
     const partialQuestionText = question.questionText.substring(2)
@@ -130,8 +132,13 @@ async function extractQuestionsAndFetchAnswers() {
         `Error fetching answer for question: ${question.questionText}`,
         error
       )
+      results.push({ question: question.questionText, error: error.message })
     } else if (data.length === 0) {
       console.error(`No answer found for question: ${question.questionText}`)
+      results.push({
+        question: question.questionText,
+        error: 'No answer found',
+      })
     } else {
       console.log(`Question: ${question.questionText}`)
       console.log(`All matching records:`, data)
@@ -142,17 +149,29 @@ async function extractQuestionsAndFetchAnswers() {
 
       // 匹配并标识正确答案
       const correctOption = question.options.find(
-        (option) => option.text === data.correct_answer
+        (option) => option.text === correctAnswer
       )
       if (correctOption) {
         console.log(`Correct Option: ${correctOption.value}`)
+        results.push({
+          question: question.questionText,
+          correctAnswer,
+          correctOption: correctOption.value,
+        })
       } else {
         console.error(
           `Correct answer not found in options for question: ${question.questionText}`
         )
+        results.push({
+          question: question.questionText,
+          correctAnswer,
+          correctOption: 'Not found in options',
+        })
       }
     }
   }
+
+  return results
 }
 // 监听来自其他脚本的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -167,8 +186,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true // 使响应异步
   } else if (message.action === 'extractQuestionsAndFetchAnswers') {
     extractQuestionsAndFetchAnswers()
-      .then(() => {
-        sendResponse({ status: 'success' })
+      .then((results) => {
+        sendResponse({ status: 'success', data: results })
       })
       .catch((error) => {
         sendResponse({ status: 'error', error: error.message })

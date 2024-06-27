@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAppStore } from '@/stores/app.store'
+// import { useAppStore } from '@/stores/app.store'
 import { supabase } from '@/supabase-clients/createSupabaseStaticClient';
 
 const version = __VERSION__
@@ -7,12 +7,6 @@ const displayName = __DISPLAY_NAME__
 const gitURL = __GITHUB_URL__
 const gitCommit = __GIT_COMMIT__
 const gitCommitURL = `${gitURL}/commit/${gitCommit}`
-
-const store = useAppStore()
-
-const name = computed(() => store.name)
-const count = computed(() => store.count)
-
 
 // 存储用户登录状态
 const email = ref('');
@@ -29,7 +23,7 @@ async function handleLogin() {
   } else {
     console.log('Login successful:', data.user);
     // 存储用户信息
-    store.setUserId(data.user.id);
+    chrome.storage.sync.set({ userId: data.user.id });
   }
 }
 
@@ -100,18 +94,6 @@ function handleExtractQuestionsAndFetchAnswers(){
         (#{{ gitCommit }})
       </a>
     </p>
-
-    <p>Name: {{ name }}</p>
-    <p>Count: {{ count }}</p>
-
-    <div class="flex gap-x-2 justify-center">
-      <button class="btn btn-primary" @click="store.increment">
-        Increment
-      </button>
-      <button class="btn btn-primary" @click="store.decrement">
-        Decrement
-      </button>
-    </div>
 
     <RouterLink class="underline" to="/common/about">
       About
