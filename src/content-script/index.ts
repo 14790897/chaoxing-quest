@@ -188,14 +188,15 @@ async function extractQuestionsAndFetchAnswers() {
         console.log('correctOptionTexts', correctOptionTexts)
         console.log('correctOptions:', correctOptions)
 
-        if (correctOptions.length === correctOptionTexts.length) {
-          console.log(
-            `Correct Options: ${correctOptions.map((o) => o.value).join(', ')}`
-          )
+        // 确保生成的选项序号对得上
+        const correctOptionValues = correctOptions.map((option) => option.value)
+
+        if (correctOptionValues.length === correctAnswers.length) {
+          console.log(`Correct Options: ${correctOptionValues.join(', ')}`)
           results.push({
             question: question.questionText,
             correctAnswers: correctOptionTexts,
-            correctOptions: correctOptions.map((o) => o.value),
+            correctOptions: correctOptionValues,
           })
         } else {
           throw new Error('Correct answers not found in options')
