@@ -5,28 +5,40 @@ import interact from 'interactjs'
 
 const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
 
-const iframe = new DOMParser().parseFromString(
-  `<iframe class="crx-iframe"  style="position:fixed; top:10%; right:10%; width:300px; height:400px; z-index:9999; border:none; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:10px;" src="${src}"></iframe>`,
-  'text/html'
-).body.firstElementChild
+// 创建iframe元素
+const iframeHTML = `
+  <div class="draggable-container">
+    <div class="draggable-header">Drag me</div>
+    <iframe class="crx-iframe" src="${src}"></iframe>
+  </div>
+`
 
-if (iframe) {
-  document.body?.append(iframe)
+const parser = new DOMParser()
+const iframeElement = parser.parseFromString(iframeHTML, 'text/html').body
+  .firstElementChild
 
-  interact(iframe).draggable({
-    listeners: {
-      move(event) {
-        const { target } = event
-        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+if (iframeElement) {
+  document.body.appendChild(iframeElement)
 
-        target.style.transform = `translate(${x}px, ${y}px)`
-
-        target.setAttribute('data-x', x)
-        target.setAttribute('data-y', y)
+  // 获取header元素
+  const header = iframeElement.querySelector('.draggable-header')
+  const container = iframeElement
+  if (header && container) {
+    interact(header).draggable({
+      listeners: {
+        move(event) {
+          const { target } = event
+          const x =
+            (parseFloat(container.getAttribute('data-x')) || 0) + event.dx
+          const y =
+            (parseFloat(container.getAttribute('data-y')) || 0) + event.dy
+          container.style.transform = `translate(${x}px, ${y}px)`
+          container.setAttribute('data-x', x.toString())
+          container.setAttribute('data-y', y.toString())
+        },
       },
-    },
-  })
+    })
+  }
 }
 self.onerror = function (message, source, lineno, colno, error) {
   console.info(

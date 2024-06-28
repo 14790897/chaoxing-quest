@@ -1,9 +1,36 @@
+.draggable-container {
+  position: fixed;
+  top: 10%;
+  right: 10%;
+  width: 300px;
+  height: 400px;
+  z-index: 9999;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  transition: transform 0.2s ease-in-out;
+}
+
+.draggable-header {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  cursor: move;
+  text-align: center;
+  font-weight: bold;
+  user-select: none;
+  /* 防止选中文字 */
+}
+
 .crx-iframe {
-  margin-left: 8px;
-  width: calc(100% - 8px);
-  height: auto;
+  width: 100%;
+  height: calc(100% - 40px);
+  /* 调整高度以适应header */
   border: none;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 -1px 0px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 -1px 0px rgba(0, 0, 0, 0.02);
   background-color: #fff;
 }

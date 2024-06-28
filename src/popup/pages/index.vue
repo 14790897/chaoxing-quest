@@ -156,7 +156,7 @@ onMounted(() => {
       @click="handleExportToExcel"
       class="bg-green-500 text-white py-2 px-4 rounded mt-4"
     >
-      Export to Excel
+      Export database to Excel
     </button>
     <!-- 按钮触发内容脚本函数 -->
     <button

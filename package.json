@@ -1,13 +1,13 @@
 {
   "name": "vite-vue3-chrome-extension-v3",
-  "displayName": "Vite Vue 3 Chrome Extension",
+  "displayName": "chaoxing-questVite Vue 3 Chrome Extension",
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "description": "A Vue 3 + Vite project for building Chrome extensions",
+  "description": "chaoxing-quest 做题",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mubaidr/vite-vue3-chrome-extension-v3"
+    "url": "https://github.com/14790897/chaoxing-quest"
   },
   "scripts": {
     "build": "npm run build:chrome && npm run build:firefox",
