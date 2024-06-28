@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { supabase } from '@/supabase-clients/createSupabaseStaticClient'
+import * as XLSX from 'xlsx'
 
 const version = __VERSION__
 const displayName = __DISPLAY_NAME__
@@ -42,10 +43,11 @@ function handleExtractAndSaveQuestions() {
         (response) => {
           if (response?.status === 'success') {
             console.log('Questions extracted and saved.')
-            extractAndSaveQuestionsStatus.value = 'Questions extracted and saved.'
+            extractAndSaveQuestionsStatus.value =
+              'Questions extracted and saved.'
           } else {
             console.error('Error:', response?.error)
-            extractAndSaveQuestionsStatus.value = `Error:  + ${response?.error}`
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.error}`
           }
         }
       )
@@ -71,6 +73,41 @@ function handleExtractQuestionsAndFetchAnswers() {
     }
   })
 }
+
+// 导出题库到 Excel
+async function handleExportToExcel() {
+  const { data: questionBank, error } = await supabase
+    .from('question_bank')
+    .select('question, correct_answers,options ')
+  // 检查是否有错误
+  if (error) {
+    console.error('Error fetching question bank:', error)
+    return
+  }
+
+  // 打印 API 响应进行调试
+  console.log('API Response:', { questionBank, error })
+  // 检查是否有数据
+  if (!questionBank || questionBank.length === 0) {
+    console.error('No data found in question bank')
+    return
+  }
+  // 将嵌套的 options 和 correct_answers 字段展开
+  const processedData = questionBank.map((item) => ({
+    ...item,
+    options: item.options
+      .map((option) => `${option.value}: ${option.text}`)
+      .join(', '), // 将 options 转换为 "A: 选项1, B: 选项2" 格式
+    correct_answers: item.correct_answers.join(', '), // 将 correct_answers 转换为逗号分隔的字符串
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(processedData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Questions')
+
+  XLSX.writeFile(workbook, 'questions.xlsx')
+}
+
 // 页面加载时检查 URL 并自动搜索答案
 onMounted(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -112,13 +149,15 @@ onMounted(() => {
             <strong>Correct Option:</strong>
             {{ item.correctOptions }}
           </p>
-          <p>
-            <strong>Error:</strong>
-            {{ item.error }}
-          </p>
         </li>
       </ul>
     </div>
+    <button
+      @click="handleExportToExcel"
+      class="bg-green-500 text-white py-2 px-4 rounded mt-4"
+    >
+      Export to Excel
+    </button>
     <!-- 按钮触发内容脚本函数 -->
     <button
       @click="handleExtractAndSaveQuestions"

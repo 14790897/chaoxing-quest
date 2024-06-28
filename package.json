@@ -33,7 +33,8 @@
     "pinia": "^2.1.7",
     "vue": "^3.4.27",
     "vue-router": "^4.3.3",
-    "webextension-polyfill": "^0.12.0"
+    "webextension-polyfill": "^0.12.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.0",
