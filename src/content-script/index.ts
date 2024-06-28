@@ -1,6 +1,7 @@
 import './index.scss'
 import { supabase } from '@/supabase-clients/createSupabaseStaticClient'
 import type { Question } from '@/lib/Question'
+import interact from 'interactjs'
 
 const src = chrome.runtime.getURL('src/content-script/iframe/index.html')
 
@@ -11,8 +12,22 @@ const iframe = new DOMParser().parseFromString(
 
 if (iframe) {
   document.body?.append(iframe)
-}
 
+  interact(iframe).draggable({
+    listeners: {
+      move(event) {
+        const { target } = event
+        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+        target.style.transform = `translate(${x}px, ${y}px)`
+
+        target.setAttribute('data-x', x)
+        target.setAttribute('data-y', y)
+      },
+    },
+  })
+}
 self.onerror = function (message, source, lineno, colno, error) {
   console.info(
     `Error: ${message}\nSource: ${source}\nLine: ${lineno}\nColumn: ${colno}\nError object: ${error}`
@@ -113,11 +128,10 @@ async function extractQuestionsAndFetchAnswers() {
       '.stem_answer .answerBg'
     )
 
-    optionElements.forEach((optionElement) => {
+    optionElements.forEach((optionElement, index) => {
       const optionText =
         optionElement.querySelector('.answer_p')?.innerText.trim() || ''
-      const optionValue =
-        optionElement.querySelector('span')?.getAttribute('data') || ''
+      const optionValue = String.fromCharCode(65 + index) // 将索引转换为 A, B, C, D
       options.push({ text: optionText, value: optionValue })
     })
 
@@ -127,7 +141,7 @@ async function extractQuestionsAndFetchAnswers() {
   const results = []
 
   for (const question of questionsData) {
-    // 排除前十个字的部分文本
+    // 排除前两个字的部分文本
     const partialQuestionText = question.questionText.substring(2)
     const { data, error } = await supabase
       .from('question_bank')
@@ -160,7 +174,7 @@ async function extractQuestionsAndFetchAnswers() {
           : data[0].correct_answers.split('')
 
         const correctOptionTexts = correctAnswers
-          .map((answer: string) => {
+          .map((answer) => {
             const option = data[0].options.find(
               (option) => option.value === answer
             )
