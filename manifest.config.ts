@@ -38,8 +38,8 @@ export default defineManifest(async (env) => ({
     },
   ],
   offline_enabled: false,
-  host_permissions: [],
-  permissions: ['storage', 'tabs', 'background', 'activeTab'],
+  // host_permissions: [],
+  permissions: ['storage', 'tabs', 'activeTab'],
   web_accessible_resources: [
     {
       matches: ['*://*/*'],

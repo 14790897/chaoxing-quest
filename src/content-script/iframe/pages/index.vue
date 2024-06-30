@@ -26,6 +26,7 @@ async function handleLogin() {
 
   if (error) {
     console.error('Login error:', error.message)
+    extractAndSaveQuestionsStatus.value = error.message
   } else {
     console.log('Login successful:', data.user)
     // 存储用户信息
@@ -43,6 +44,7 @@ async function handleRegister() {
 
   if (error) {
     console.error('Registration error:', error.message)
+    extractAndSaveQuestionsStatus.value = error.message
   } else {
     console.log('Registration successful:', data.user)
     // 自动登录用户
@@ -159,6 +161,16 @@ onMounted(() => {
       handleExtractQuestionsAndFetchAnswers()
     }
   })
+})
+
+// 在组件加载时检查用户是否已登录
+onMounted(async () => {
+  const { userId } = await chrome.storage.sync.get('userId')
+  if (userId) {
+    isLogin.value = true // 用户已登录
+  } else {
+    isLogin.value = false // 用户未登录
+  }
 })
 </script>
 
