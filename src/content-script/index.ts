@@ -84,6 +84,8 @@ async function extractAndSaveQuestions(): Promise<{
       const answerElements =
         questionContainer.querySelectorAll<HTMLSpanElement>('div.mark_key span')
 
+      let foundCorrectAnswer = false
+
       answerElements.forEach((answerElement) => {
         const answerLabel = answerElement
           .querySelector<HTMLElement>('i.fontWeight')
@@ -101,11 +103,19 @@ async function extractAndSaveQuestions(): Promise<{
             correctAnswerText.length > 1
               ? correctAnswerText.split('')
               : [correctAnswerText]
+          foundCorrectAnswer = true
         } else {
           console.error('Unknown answer label:', answerLabel)
         }
       })
-
+      // 如果没有找到答案，就返回错误
+      if (!foundCorrectAnswer) {
+        console.error('No correct answer found for question:', questionId)
+        return {
+          success: false,
+          message: `No correct answer found for question ID: ${questionId}`,
+        }
+      }
       questionsData.push({
         user_id: userId,
         question_id: questionId,

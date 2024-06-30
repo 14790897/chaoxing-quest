@@ -157,7 +157,7 @@ onMounted(() => {
       @click="handleExtractQuestionsAndFetchAnswers"
       class="bg-blue-500 text-white py-2 px-4 rounded"
     >
-      Extract Questions and Fetch Answers
+      获取题目答案
     </button>
     <!-- 显示返回的答案 -->
     <div v-if="questionsData.length">
@@ -186,14 +186,14 @@ onMounted(() => {
       @click="handleExportToExcel"
       class="bg-green-500 text-white py-2 px-4 rounded mt-4"
     >
-      Export database to Excel
+      导出题库到excel
     </button>
     <!-- 按钮触发内容脚本函数 -->
     <button
       @click="handleExtractAndSaveQuestions"
       class="bg-blue-500 text-white py-2 px-4 rounded"
     >
-      Extract and Save Questions
+      提取页面上的题目和答案贡献到数据库
     </button>
     <div v-if="extractAndSaveQuestionsStatus">
       <p>{{ extractAndSaveQuestionsStatus }}</p>
