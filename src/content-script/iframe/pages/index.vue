@@ -33,6 +33,22 @@ async function handleLogin() {
   }
 }
 
+// 注册处理函数
+async function handleRegister() {
+  const { data, error } = await supabase.auth.signUp({
+    email: email.value,
+    password: password.value,
+  })
+
+  if (error) {
+    console.error('Registration error:', error.message)
+  } else {
+    console.log('Registration successful:', data.user)
+    // 自动登录用户
+    handleLogin()
+  }
+}
+
 // 处理按钮点击事件的函数
 function handleExtractAndSaveQuestions() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -169,7 +185,7 @@ onMounted(() => {
       <p>{{ extractAndSaveQuestionsStatus }}</p>
     </div>
 
-    <!-- 登录表单 -->
+    <!-- 登录和注册表单 -->
     <div>
       <input
         v-model="email"
@@ -183,12 +199,20 @@ onMounted(() => {
         placeholder="Password"
         class="mb-2 p-2 border rounded"
       />
-      <button
-        @click="handleLogin"
-        class="bg-green-500 text-white py-2 px-4 rounded"
-      >
-        Login
-      </button>
+      <div class="flex gap-x-2">
+        <button
+          @click="handleLogin"
+          class="bg-green-500 text-white py-2 px-4 rounded"
+        >
+          Login
+        </button>
+        <button
+          @click="handleRegister"
+          class="bg-yellow-500 text-white py-2 px-4 rounded"
+        >
+          Register
+        </button>
+      </div>
     </div>
 
     <p>

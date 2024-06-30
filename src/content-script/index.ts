@@ -86,9 +86,9 @@ async function extractAndSaveQuestions(): Promise<void> {
         ?.textContent!.trim()
       if (answerLabel === '我的答案:') {
         userAnswer = answerElement.textContent!.replace('我的答案:', '').trim()
-      } else if (answerLabel === '正确答案:') {
+      } else if (answerLabel === '正确答案:' || answerLabel === 'Correct answer:') {
         const correctAnswerText = answerElement
-          .textContent!.replace('正确答案:', '')
+          .textContent!.replace(/(正确答案:|Correct answer:)/, '')
           .trim()
         // 确保正确答案存储为数组格式
         correctAnswers =
@@ -100,7 +100,7 @@ async function extractAndSaveQuestions(): Promise<void> {
 
     // 将题目信息添加到数组
     questionsData.push({
-      user_id: 'bbfdd508-da56-4d95-ac95-ba640ceb647b',
+      user_id: '1d3ef322-9cd5-4e5c-8906-2811e9ab80b2',
       question_id: questionId,
       question: questionText,
       options,
@@ -117,7 +117,7 @@ async function extractAndSaveQuestions(): Promise<void> {
     .from('question_bank')
     .upsert(questionsData, {
       onConflict: ['question_id'],
-      ignoreDuplicates: true, // 如果有冲突则忽略重复记录，不进行更新
+      ignoreDuplicates: false, 
     })
   if (error) {
     console.error('Error inserting questions:', error)
