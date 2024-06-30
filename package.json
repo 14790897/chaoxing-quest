@@ -1,6 +1,6 @@
 {
-  "name": "vite-vue3-chrome-extension-v3",
-  "displayName": "chaoxing-questVite Vue 3 Chrome Extension",
+  "name": "chaoxing-quest",
+  "displayName": "chaoxing-quest",
   "type": "module",
   "version": "0.0.1",
   "private": true,

@@ -52,7 +52,7 @@ async function extractAndSaveQuestions(): Promise<{
 }> {
   const { userId } = await chrome.storage.sync.get('userId')
   if (!userId) {
-    console.log('user not login')
+    console.error('user not login')
     return {
       success: false,
       message: 'user not login',

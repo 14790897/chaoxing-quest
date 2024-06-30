@@ -70,20 +70,23 @@ function handleExtractAndSaveQuestions() {
       chrome.tabs.sendMessage(
         tabs[0].id,
         { action: 'extractAndSaveQuestions' },
-        async (response) => {
-          if (response?.success) {
-            console.log('Questions extracted and saved:', response.message)
-            extractAndSaveQuestionsStatus.value = `Questions extracted and saved:${response.message}`
+        (response) => {
+          if (response && response.success) {
+            console.log('Questions extracted and saved:', response.message);
+            extractAndSaveQuestionsStatus.value = `Questions extracted and saved: ${response.message}`;
           } else {
-            console.error('Error:', response?.message)
-            console.log(response)
-            extractAndSaveQuestionsStatus.value = `Error: ${response?.message}`
+            console.error('Error:', response?.message || 'Unknown error');
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.message || 'Unknown error'}`;
           }
         }
-      )
+      );
+    } else {
+      console.error('No active tab identified.');
+      extractAndSaveQuestionsStatus.value = 'Error: No active tab identified.';
     }
-  })
+  });
 }
+
 
 function handleExtractQuestionsAndFetchAnswers() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -292,7 +295,7 @@ onMounted(() => {
 button {
   margin: 20px;
 }
-.btn {
+.btn input {
   width: 20vw; /* 按钮宽度根据视口宽度调整 */
   padding: 1vh 2vw; /* 上下填充根据视口高度调整，左右填充根据视口宽度调整 */
 }
