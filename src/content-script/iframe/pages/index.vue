@@ -12,7 +12,7 @@ const gitCommitURL = `${gitURL}/commit/${gitCommit}`
 // 存储用户登录状态
 const email = ref('')
 const password = ref('')
-
+const isLogin = ref(false)
 // 存储从内容脚本返回的数据
 const questionsData = ref([])
 const extractAndSaveQuestionsStatus = ref('')
@@ -30,6 +30,7 @@ async function handleLogin() {
     console.log('Login successful:', data.user)
     // 存储用户信息
     chrome.storage.sync.set({ userId: data.user.id })
+    isLogin.value = true
   }
 }
 
@@ -49,6 +50,19 @@ async function handleRegister() {
   }
 }
 
+// 注销处理函数
+async function handleLogout() {
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Logout error:', error.message)
+  } else {
+    console.log('Logout successful')
+    isLogin.value = false
+    email.value = '' // 清除用户名
+    chrome.storage.sync.set({ userId: '' })
+  }
+}
+
 // 处理按钮点击事件的函数
 function handleExtractAndSaveQuestions() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -63,7 +77,7 @@ function handleExtractAndSaveQuestions() {
               'Questions extracted and saved.'
           } else {
             console.error('Error:', response?.error)
-            extractAndSaveQuestionsStatus.value = `Error: ${response?.error}`
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.error}  user may not login`
           }
         }
       )
@@ -186,7 +200,7 @@ onMounted(() => {
     </div>
 
     <!-- 登录和注册表单 -->
-    <div>
+    <div v-if="!isLogin">
       <input
         v-model="email"
         type="email"
@@ -213,6 +227,16 @@ onMounted(() => {
           Register
         </button>
       </div>
+    </div>
+    <!-- 显示用户名 -->
+    <div v-else>
+      <p>Welcome, {{ email }}</p>
+      <button
+        @click="handleLogout"
+        class="bg-red-500 text-white py-2 px-4 rounded"
+      >
+        Logout
+      </button>
     </div>
 
     <p>
@@ -267,5 +291,9 @@ onMounted(() => {
 
 button {
   margin: 20px;
+}
+.btn {
+  width: 20vw; /* 按钮宽度根据视口宽度调整 */
+  padding: 1vh 2vw; /* 上下填充根据视口高度调整，左右填充根据视口宽度调整 */
 }
 </style>

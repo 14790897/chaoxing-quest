@@ -47,6 +47,15 @@ self.onerror = function (message, source, lineno, colno, error) {
 }
 
 async function extractAndSaveQuestions(): Promise<void> {
+  let userId: string
+  try {
+    const { userId: storedUserId } = await chrome.storage.sync.get('userId')
+    userId = storedUserId
+    if (!userId) throw new Error('UserId is null or undefined.')
+  } catch (e) {
+    console.error('Error getting userId:', e)
+    return // 如果无法获取 userId，终止函数执行
+  }
   // 存储所有题目信息的数组
   const questionsData: Question[] = []
 
@@ -54,7 +63,7 @@ async function extractAndSaveQuestions(): Promise<void> {
   const questionContainers =
     document.querySelectorAll<HTMLDivElement>('div.questionLi')
 
-  questionContainers.forEach((questionContainer) => {
+  questionContainers.forEach(async (questionContainer) => {
     // 提取题目ID
     const questionId = questionContainer.getAttribute('data') || ''
 
@@ -84,9 +93,14 @@ async function extractAndSaveQuestions(): Promise<void> {
       const answerLabel = answerElement
         .querySelector<HTMLElement>('i.fontWeight')
         ?.textContent!.trim()
-      if (answerLabel === '我的答案:') {
-        userAnswer = answerElement.textContent!.replace('我的答案:', '').trim()
-      } else if (answerLabel === '正确答案:' || answerLabel === 'Correct answer:') {
+      if (answerLabel === '我的答案:' || answerLabel === 'My answer:') {
+        userAnswer = answerElement
+          .textContent!.replace(/(我的答案:|My answer:)/, '')
+          .trim()
+      } else if (
+        answerLabel === '正确答案:' ||
+        answerLabel === 'Correct answer:'
+      ) {
         const correctAnswerText = answerElement
           .textContent!.replace(/(正确答案:|Correct answer:)/, '')
           .trim()
@@ -95,12 +109,14 @@ async function extractAndSaveQuestions(): Promise<void> {
           correctAnswerText.length > 1
             ? correctAnswerText.split('')
             : [correctAnswerText]
+      } else {
+        console.error('Unknown answer label:', answerLabel)
       }
     })
 
     // 将题目信息添加到数组
     questionsData.push({
-      user_id: '1d3ef322-9cd5-4e5c-8906-2811e9ab80b2',
+      user_id: userId,
       question_id: questionId,
       question: questionText,
       options,
@@ -117,7 +133,7 @@ async function extractAndSaveQuestions(): Promise<void> {
     .from('question_bank')
     .upsert(questionsData, {
       onConflict: ['question_id'],
-      ignoreDuplicates: false, 
+      ignoreDuplicates: false,
     })
   if (error) {
     console.error('Error inserting questions:', error)
