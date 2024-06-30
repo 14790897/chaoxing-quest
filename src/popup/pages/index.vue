@@ -70,17 +70,28 @@ function handleExtractAndSaveQuestions() {
       chrome.tabs.sendMessage(
         tabs[0].id,
         { action: 'extractAndSaveQuestions' },
-        async (response) => {
-          if (response?.success) {
-            console.log('Questions extracted and saved:', response.message)
-            extractAndSaveQuestionsStatus.value = `Questions extracted and saved:${response.message}`
+        (response) => {
+          console.log('response:', response)
+          if (response && response?.status === 'success') {
+            if (response.data.success) {
+              console.log(
+                'Questions extracted and saved:',
+                response.data.message
+              )
+              extractAndSaveQuestionsStatus.value = `Questions extracted and saved: ${response.data.message}`
+            } else {
+              console.error('Error:', response?.data.message || 'Unknown error')
+              extractAndSaveQuestionsStatus.value = `Error: ${response?.data.message || 'Unknown error'}`
+            }
           } else {
-            console.error('Error:', response?.message)
-            console.log(response)
-            extractAndSaveQuestionsStatus.value = `Error: ${response?.message}`
+            console.error('Error:', response?.data.message || 'Unknown error')
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.data.message || 'Unknown error'}`
           }
         }
       )
+    } else {
+      console.error('No active tab identified.')
+      extractAndSaveQuestionsStatus.value = 'Error: No active tab identified.'
     }
   })
 }
@@ -193,7 +204,7 @@ onMounted(() => {
       @click="handleExtractAndSaveQuestions"
       class="bg-blue-500 text-white py-2 px-4 rounded"
     >
-      提取页面上的题目和答案
+      提取页面上的题目和答案贡献到数据库
     </button>
     <div v-if="extractAndSaveQuestionsStatus">
       <p>{{ extractAndSaveQuestionsStatus }}</p>
@@ -292,7 +303,7 @@ onMounted(() => {
 button {
   margin: 20px;
 }
-.btn {
+.btn input {
   width: 20vw; /* 按钮宽度根据视口宽度调整 */
   padding: 1vh 2vw; /* 上下填充根据视口高度调整，左右填充根据视口宽度调整 */
 }

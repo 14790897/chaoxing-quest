@@ -71,22 +71,30 @@ function handleExtractAndSaveQuestions() {
         tabs[0].id,
         { action: 'extractAndSaveQuestions' },
         (response) => {
-          if (response && response.success) {
-            console.log('Questions extracted and saved:', response.message);
-            extractAndSaveQuestionsStatus.value = `Questions extracted and saved: ${response.message}`;
+          console.log('response:', response)
+          if (response && response?.status === 'success') {
+            if (response.data.success) {
+              console.log(
+                'Questions extracted and saved:',
+                response.data.message
+              )
+              extractAndSaveQuestionsStatus.value = `Questions extracted and saved: ${response.data.message}`
+            } else {
+              console.error('Error:', response?.data.message || 'Unknown error')
+              extractAndSaveQuestionsStatus.value = `Error: ${response?.data.message || 'Unknown error'}`
+            }
           } else {
-            console.error('Error:', response?.message || 'Unknown error');
-            extractAndSaveQuestionsStatus.value = `Error: ${response?.message || 'Unknown error'}`;
+            console.error('Error:', response?.data.message || 'Unknown error')
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.data.message || 'Unknown error'}`
           }
         }
-      );
+      )
     } else {
-      console.error('No active tab identified.');
-      extractAndSaveQuestionsStatus.value = 'Error: No active tab identified.';
+      console.error('No active tab identified.')
+      extractAndSaveQuestionsStatus.value = 'Error: No active tab identified.'
     }
-  });
+  })
 }
-
 
 function handleExtractQuestionsAndFetchAnswers() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

@@ -273,8 +273,8 @@ async function extractQuestionsAndFetchAnswers() {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'extractAndSaveQuestions') {
     extractAndSaveQuestions()
-      .then(() => {
-        sendResponse({ status: 'success' })
+      .then((results) => {
+        sendResponse({ status: 'success', data: results })
       })
       .catch((error) => {
         sendResponse({ status: 'error', error: error.message })
