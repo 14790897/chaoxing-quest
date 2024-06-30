@@ -63,21 +63,21 @@ async function handleLogout() {
   }
 }
 
-// 处理按钮点击事件的函数
+// 处理提取数据事件的函数
 function handleExtractAndSaveQuestions() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.id) {
       chrome.tabs.sendMessage(
         tabs[0].id,
         { action: 'extractAndSaveQuestions' },
-        (response) => {
-          if (response?.status === 'success') {
-            console.log('Questions extracted and saved.')
-            extractAndSaveQuestionsStatus.value =
-              'Questions extracted and saved.'
+        async (response) => {
+          if (response?.success) {
+            console.log('Questions extracted and saved:', response.message)
+            extractAndSaveQuestionsStatus.value = `Questions extracted and saved:${response.message}`
           } else {
-            console.error('Error:', response?.error)
-            extractAndSaveQuestionsStatus.value = `Error: ${response?.error}  user may not login`
+            console.error('Error:', response?.message)
+            console.log(response)
+            extractAndSaveQuestionsStatus.value = `Error: ${response?.message}`
           }
         }
       )

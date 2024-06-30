@@ -46,99 +46,99 @@ self.onerror = function (message, source, lineno, colno, error) {
   )
 }
 
-async function extractAndSaveQuestions(): Promise<void> {
-  let userId: string
-  try {
-    const { userId: storedUserId } = await chrome.storage.sync.get('userId')
-    userId = storedUserId
-    if (!userId) throw new Error('UserId is null or undefined.')
-  } catch (e) {
-    console.error('Error getting userId:', e)
-    return // 如果无法获取 userId，终止函数执行
+async function extractAndSaveQuestions(): Promise<{
+  success: boolean
+  message: string
+}> {
+  const { userId } = await chrome.storage.sync.get('userId')
+  if (!userId) {
+    console.log('user not login')
+    return {
+      success: false,
+      message: 'user not login',
+    }
   }
-  // 存储所有题目信息的数组
-  const questionsData: Question[] = []
 
-  // 获取所有题目容器
+  const questionsData: Question[] = []
   const questionContainers =
     document.querySelectorAll<HTMLDivElement>('div.questionLi')
 
-  questionContainers.forEach(async (questionContainer) => {
-    // 提取题目ID
-    const questionId = questionContainer.getAttribute('data') || ''
+  try {
+    questionContainers.forEach(async (questionContainer) => {
+      const questionId = questionContainer.getAttribute('data') || ''
+      const questionText =
+        questionContainer
+          .querySelector<HTMLHeadingElement>('h3.mark_name')
+          ?.textContent!.trim() || ''
+      const options: { text: string; value: string }[] = []
+      const optionElements =
+        questionContainer.querySelectorAll<HTMLLIElement>('ul.mark_letter li')
 
-    // 提取题目文本
-    const questionText =
-      questionContainer
-        .querySelector<HTMLHeadingElement>('h3.mark_name')
-        ?.textContent!.trim() || ''
+      optionElements.forEach((optionElement, index) => {
+        const optionText = optionElement.textContent!.trim().substring(2).trim() //去掉前面的序号
+        const optionValue = String.fromCharCode(65 + index) // 将选项索引转换为 A, B, C, D
+        options.push({ text: optionText, value: optionValue })
+      })
 
-    // 提取选项
-    const options: { text: string; value: string }[] = []
-    const optionElements =
-      questionContainer.querySelectorAll<HTMLLIElement>('ul.mark_letter li')
-    optionElements.forEach((optionElement, index) => {
-      const optionText = optionElement.textContent!.trim().substring(2).trim() //去掉前面的序号
-      const optionValue = String.fromCharCode(65 + index) // 将选项索引转换为 A, B, C, D
-      options.push({ text: optionText, value: optionValue })
+      let correctAnswers: string[] = []
+      const answerElements =
+        questionContainer.querySelectorAll<HTMLSpanElement>('div.mark_key span')
+
+      answerElements.forEach((answerElement) => {
+        const answerLabel = answerElement
+          .querySelector<HTMLElement>('i.fontWeight')
+          ?.textContent!.trim()
+        if (answerLabel === '我的答案:' || answerLabel === 'My answer:') {
+          // Skip user answer handling
+        } else if (
+          answerLabel === '正确答案:' ||
+          answerLabel === 'Correct answer:'
+        ) {
+          const correctAnswerText = answerElement
+            .textContent!.replace(/(正确答案:|Correct answer:)/, '')
+            .trim()
+          correctAnswers =
+            correctAnswerText.length > 1
+              ? correctAnswerText.split('')
+              : [correctAnswerText]
+        } else {
+          console.error('Unknown answer label:', answerLabel)
+        }
+      })
+
+      questionsData.push({
+        user_id: userId,
+        question_id: questionId,
+        question: questionText,
+        options,
+        correct_answers: correctAnswers,
+      })
     })
+    // 输出 JSON 格式的数据
+    console.log(JSON.stringify(questionsData, null, 2))
+    const { data, error } = await supabase
+      .from('question_bank')
+      .upsert(questionsData, {
+        onConflict: ['question_id'],
+        ignoreDuplicates: false,
+      })
 
-    // 提取用户答案和正确答案
-    let userAnswer = ''
-    let correctAnswers: string[] = []
-    const answerElements =
-      questionContainer.querySelectorAll<HTMLSpanElement>('div.mark_key span')
-
-    answerElements.forEach((answerElement) => {
-      const answerLabel = answerElement
-        .querySelector<HTMLElement>('i.fontWeight')
-        ?.textContent!.trim()
-      if (answerLabel === '我的答案:' || answerLabel === 'My answer:') {
-        userAnswer = answerElement
-          .textContent!.replace(/(我的答案:|My answer:)/, '')
-          .trim()
-      } else if (
-        answerLabel === '正确答案:' ||
-        answerLabel === 'Correct answer:'
-      ) {
-        const correctAnswerText = answerElement
-          .textContent!.replace(/(正确答案:|Correct answer:)/, '')
-          .trim()
-        // 确保正确答案存储为数组格式
-        correctAnswers =
-          correctAnswerText.length > 1
-            ? correctAnswerText.split('')
-            : [correctAnswerText]
-      } else {
-        console.error('Unknown answer label:', answerLabel)
+    if (error) {
+      console.error('Error inserting questions:', error)
+      return {
+        success: false,
+        message: 'Error inserting questions into database.',
       }
-    })
-
-    // 将题目信息添加到数组
-    questionsData.push({
-      user_id: userId,
-      question_id: questionId,
-      question: questionText,
-      options,
-      correct_answers: correctAnswers,
-      // user_answer: userAnswer || undefined, // 如果没有用户答案，将其设置为 undefined
-    })
-  })
-
-  // 输出 JSON 格式的数据
-  console.log(JSON.stringify(questionsData, null, 2))
-
-  // 使用 Supabase 插入数据
-  const { data, error } = await supabase
-    .from('question_bank')
-    .upsert(questionsData, {
-      onConflict: ['question_id'],
-      ignoreDuplicates: false,
-    })
-  if (error) {
-    console.error('Error inserting questions:', error)
-  } else {
-    console.log('Questions inserted successfully:', data)
+    } else {
+      console.log('Questions inserted successfully:', data)
+      return { success: true, message: 'Questions inserted successfully.' }
+    }
+  } catch (e) {
+    console.error('Processing or Supabase error:', e)
+    return {
+      success: false,
+      message: 'An unexpected error occurred while processing questions.',
+    }
   }
 }
 
