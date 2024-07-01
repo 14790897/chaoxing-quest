@@ -154,21 +154,21 @@ async function extractAndSaveQuestions(): Promise<{
 
 // 从页面上提取题目信息并查询答案
 async function extractQuestionsAndFetchAnswers() {
-  const questionsData = []
+  const questionsData = <any>[]
   const questionContainers = document.querySelectorAll('div.questionLi')
 
   questionContainers.forEach((questionContainer) => {
     const questionText =
-      questionContainer.querySelector('h3.mark_name div')?.innerText.trim() ||
+      questionContainer.querySelector('h3.mark_name div')?.textContent.trim() ||
       ''
-    const options = []
+    const options = <any>[]
     const optionElements = questionContainer.querySelectorAll(
       '.stem_answer .answerBg'
     )
 
     optionElements.forEach((optionElement, index) => {
       const optionText =
-        optionElement.querySelector('.answer_p')?.innerText.trim() || ''
+        optionElement.querySelector('.answer_p')?.textContent.trim() || ''
       const optionValue = String.fromCharCode(65 + index) // 将索引转换为 A, B, C, D
       options.push({ text: optionText, value: optionValue })
     })
@@ -212,9 +212,9 @@ async function extractQuestionsAndFetchAnswers() {
           : data[0].correct_answers.split('')
 
         const correctOptionTexts = correctAnswers
-          .map((answer) => {
+          .map((answer:any) => {
             const option = data[0].options.find(
-              (option) => option.value === answer
+              (option:any) => option.value === answer
             )
             if (option) {
               return option.text
