@@ -26,6 +26,7 @@ async function handleLogin() {
 
   if (error) {
     console.error('Login error:', error.message)
+    extractAndSaveQuestionsStatus.value = error.message
   } else {
     console.log('Login successful:', data.user)
     // 存储用户信息
@@ -43,6 +44,7 @@ async function handleRegister() {
 
   if (error) {
     console.error('Registration error:', error.message)
+    extractAndSaveQuestionsStatus.value = error.message
   } else {
     console.log('Registration successful:', data.user)
     // 自动登录用户
@@ -160,17 +162,27 @@ onMounted(() => {
     }
   })
 })
+
+// 在组件加载时检查用户是否已登录
+onMounted(async () => {
+  const { userId } = await chrome.storage.sync.get('userId')
+  if (userId) {
+    isLogin.value = true // 用户已登录
+  } else {
+    isLogin.value = false // 用户未登录
+  }
+})
 </script>
 
 <template>
-  <div class="text-center m-4 flex flex-col gap-y-2">
+  <div class="text-center m-4 space-y-2">
     <button
       @click="handleExtractQuestionsAndFetchAnswers"
-      class="bg-blue-500 text-white py-2 px-4 rounded"
+      class="btn btn-primary"
     >
       获取题目答案
     </button>
-    <!-- 显示返回的答案 -->
+
     <div v-if="questionsData.length">
       <h2 class="text-xl font-bold pt-6">Fetched Answers</h2>
       <ul>
@@ -193,58 +205,60 @@ onMounted(() => {
         </li>
       </ul>
     </div>
+
     <button
       @click="handleExportToExcel"
-      class="bg-green-500 text-white py-2 px-4 rounded mt-4"
+      class="btn btn-success mt-4"
     >
       导出题库到excel
     </button>
-    <!-- 按钮触发内容脚本函数 -->
+
     <button
       @click="handleExtractAndSaveQuestions"
-      class="bg-blue-500 text-white py-2 px-4 rounded"
+      class="btn btn-primary"
     >
       提取页面上的题目和答案贡献到数据库
     </button>
-    <div v-if="extractAndSaveQuestionsStatus">
-      <p>{{ extractAndSaveQuestionsStatus }}</p>
-    </div>
 
-    <!-- 登录和注册表单 -->
+    <p v-if="extractAndSaveQuestionsStatus">
+      {{ extractAndSaveQuestionsStatus }}
+    </p>
+
     <div v-if="!isLogin">
       <input
         v-model="email"
         type="email"
         placeholder="Email"
-        class="mb-2 p-2 border rounded"
+        class="input input-bordered w-full max-w-xs"
       />
       <input
         v-model="password"
         type="password"
         placeholder="Password"
-        class="mb-2 p-2 border rounded"
+        class="input input-bordered w-full max-w-xs"
       />
-      <div class="flex gap-x-2">
+
+      <div class="flex gap-x-2 mt-2">
         <button
           @click="handleLogin"
-          class="bg-green-500 text-white py-2 px-4 rounded"
+          class="btn btn-success"
         >
           Login
         </button>
         <button
           @click="handleRegister"
-          class="bg-yellow-500 text-white py-2 px-4 rounded"
+          class="btn btn-warning"
         >
           Register
         </button>
       </div>
     </div>
-    <!-- 显示用户名 -->
+
     <div v-else>
       <p>Welcome, {{ email }}</p>
       <button
         @click="handleLogout"
-        class="bg-red-500 text-white py-2 px-4 rounded"
+        class="btn btn-error"
       >
         Logout
       </button>
@@ -253,8 +267,8 @@ onMounted(() => {
     <p>
       GIT URL:
       <a
-        class="underline text-green-500"
         :href="gitURL"
+        class="link link-primary"
       >
         {{ gitURL }}
       </a>
@@ -264,7 +278,7 @@ onMounted(() => {
       GIT Commit:
       <a
         :href="gitCommitURL"
-        class="text-green-500"
+        class="link link-primary"
       >
         (#{{ gitCommit }})
       </a>
@@ -272,8 +286,8 @@ onMounted(() => {
     <p>Version: {{ version }}</p>
     <p>Display name: {{ displayName }}</p>
     <RouterLink
-      class="underline"
       to="/common/about"
+      class="link link-accent"
     >
       About
     </RouterLink>
@@ -282,29 +296,10 @@ onMounted(() => {
 
 <style scoped>
 .btn {
-  @apply px-4 py-2 rounded-md bg-blue-500 text-white;
+  @apply px-4 py-2 rounded-md text-white;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-
-button {
-  margin: 20px;
-}
-.btn input {
-  width: 20vw; /* 按钮宽度根据视口宽度调整 */
-  padding: 1vh 2vw; /* 上下填充根据视口高度调整，左右填充根据视口宽度调整 */
+  @apply h-24 p-6 transition-all filter hover:brightness-125;
 }
 </style>
