@@ -32,7 +32,7 @@ export default defineManifest(async (env) => ({
       matches: [
         '*://*.chaoxing.com/*',
         '*://*.xuexi365.com/*',
-        '*://127.0.0.1/*',
+        // '*://127.0.0.1/*',
       ],
       run_at: 'document_end',
     },

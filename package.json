@@ -2,7 +2,7 @@
   "name": "chaoxing-quest",
   "displayName": "chaoxing-quest",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "chaoxing-quest 做题",
   "repository": {
