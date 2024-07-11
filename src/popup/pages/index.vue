@@ -14,7 +14,7 @@ const email = ref('')
 const password = ref('')
 const isLogin = ref(false)
 // 存储从内容脚本返回的数据
-const questionsData = ref([])
+const questionsData = ref<any>([])
 const extractAndSaveQuestionsStatus = ref('')
 
 // 登录处理函数
@@ -48,7 +48,8 @@ async function handleRegister() {
   } else {
     console.log('Registration successful:', data.user)
     // 自动登录用户
-    handleLogin()
+    // handleLogin() 这是不行的，因为没有确认邮件
+    extractAndSaveQuestionsStatus.value='请在邮箱中确认注册邮件'
   }
 }
 
@@ -136,10 +137,10 @@ async function handleExportToExcel() {
     return
   }
   // 将嵌套的 options 和 correct_answers 字段展开
-  const processedData = questionBank.map((item) => ({
+  const processedData = questionBank.map((item:any) => ({
     ...item,
     options: item.options
-      .map((option) => `${option.value}: ${option.text}`)
+      .map((option:any) => `${option.value}: ${option.text}`)
       .join(', '), // 将 options 转换为 "A: 选项1, B: 选项2" 格式
     correct_answers: item.correct_answers.join(', '), // 将 correct_answers 转换为逗号分隔的字符串
   }))
@@ -153,7 +154,7 @@ async function handleExportToExcel() {
 
 // 页面加载时检查 URL 并自动搜索答案
 onMounted(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs:any) => {
     if (
       tabs[0]?.url.includes('exam') &&
       !tabs[0]?.url.includes('reVersionPaperMark')

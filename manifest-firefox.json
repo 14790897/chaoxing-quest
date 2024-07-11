@@ -1,0 +1,53 @@
+{
+  "name": "chaoxing-quest",
+  "description": "chaoxing-quest 做题",
+  "version": "0.0.2.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "src/popup/index.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "liuweiqing147@gmail.com"
+    }
+  },
+  "background": {
+    "scripts": ["service-worker-loader.js"],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "js": ["assets/index.ts-loader-DHMqoK_Q.js"],
+      "all_frames": false,
+      "matches": ["*://*/*"],
+      "run_at": "document_end",
+      "css": ["assets/index-BiXeex0f.css"]
+    }
+  ],
+  "host_permissions": [],
+  "permissions": ["storage", "tabs"],
+  "web_accessible_resources": [
+    {
+      "matches": ["*://*/*"],
+      "resources": [
+        "src/content-script/index.ts",
+        "src/content-script/iframe/index.html"
+      ]
+    },
+    {
+      "matches": ["*://*/*"],
+      "resources": [
+        "assets/createSupabaseStaticClient-Cs2lFhUT.js",
+        "assets/preload-helper-D_c5iCkF.js",
+        "assets/browser-Bk4ure1u.js",
+        "assets/index.ts-ClnDBRun.js"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "src/assets/logo.png",
+    "24": "src/assets/logo.png",
+    "32": "src/assets/logo.png",
+    "128": "src/assets/logo.png"
+  }
+}

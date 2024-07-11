@@ -48,7 +48,8 @@ async function handleRegister() {
   } else {
     console.log('Registration successful:', data.user)
     // 自动登录用户
-    handleLogin()
+    // handleLogin() 这是不行的，因为没有确认邮件
+    extractAndSaveQuestionsStatus.value='请在邮箱中确认注册邮件'
   }
 }
 
